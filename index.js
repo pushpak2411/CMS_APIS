@@ -95,6 +95,9 @@ app.post('/resetPassword', async (req, res) => {
     }
 })
 
+app.use('/', (req, res)=>{
+    res.json({msg:`Hello From Server 3000 CMS API TESTING MODULE`});
+})
 
 app.post('/forgotPassword', async (req, res) => {
 
