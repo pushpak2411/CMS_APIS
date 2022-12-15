@@ -429,7 +429,7 @@ app.delete('/deleteProduct/:_id', verifyTokenAdmin, async (req, res) => {
 })
 
 //Product Listing Api
-app.get('/productList', async (req, res) => {
+app.use('/productList', async (req, res) => {
     let result = await Product.find();
     if (result) {
         res.status(200).json({ result: 'success', Product_List: result });
