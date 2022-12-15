@@ -5,7 +5,8 @@ const orderSchema = new mongoose.Schema(
         productID: String,
         quantity: Number,
         Price: Number,
-        deliveryAddress: String
+        deliveryAddress: String,
+        status: Number
     }
 )
 module.exports = mongoose.model('orders', orderSchema);

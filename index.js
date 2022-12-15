@@ -32,12 +32,12 @@ const randomstring = require('randomstring');
 const nodemailer = require('nodemailer');
 
 //Admin Token Keys
-const Admin_AccessTokenKey  = 'Admin_AccessTokenKeyfbgh4e5u7jnhney6utjmhngtdrtynngt';
+const Admin_AccessTokenKey = 'Admin_AccessTokenKeyfbgh4e5u7jnhney6utjmhngtdrtynngt';
 const Admin_RefreshTokenKey = 'Admin_RefreshTokenKey14984445dfhsdhsdhsdhdfh563w5gsf';
 
 //User Token Keys
-const User_AccessTokenKey   = 'User_AccessTokenKeygf89h7dsgb8dfg7h9df7gdfghdf7g87f7';
-const User_RefreshTokenKey  = 'User_RefreshTokenKeygdb87dg8b78xgcv7b89ncvx97b8n9n87';
+const User_AccessTokenKey = 'User_AccessTokenKeygf89h7dsgb8dfg7h9df7gdfghdf7g87f7';
+const User_RefreshTokenKey = 'User_RefreshTokenKeygdb87dg8b78xgcv7b89ncvx97b8n9n87';
 
 const sendResetPasswordMail = async (name, email, token) => {
     try {
@@ -95,9 +95,6 @@ app.post('/resetPassword', async (req, res) => {
     }
 })
 
-app.use('/', (req, res)=>{
-    res.json({msg:`Hello From Server 3000 CMS API TESTING MODULE`});
-})
 
 app.post('/forgotPassword', async (req, res) => {
 
@@ -452,7 +449,7 @@ app.get('/productDetails/:_id', async (req, res) => {
 })
 
 //Create Order Api
-app.post('/addOrder', verifyTokenUser, async (req, res)=>{
+app.post('/addOrder', verifyTokenUser, async (req, res) => {
     let data = new Order(req.body);
     let result = await data.save();
     if (result) {
@@ -460,6 +457,20 @@ app.post('/addOrder', verifyTokenUser, async (req, res)=>{
     } else {
         res.status(400).json({ result: 'Something Went Wrong, please try again..' })
     }
+})
+
+//Cancel Order Api
+app.put('/cancelOrder/:_id', async (req, res) => {
+    let result = await Order.updateOne(
+        req.params,
+        { $set: req.body }
+    )
+    if (result) {
+        res.status(200).json({ result: 'Order Cancelled Successfully' })
+    } else {
+        res.status(400).json({ result: 'Something Went Wrong, please try again..' })
+    }
+
 })
 
 //Order List Api
@@ -473,17 +484,46 @@ app.get('/orderList/:userID', verifyTokenUser, async (req, res) => {
 })
 
 //USER ORDERS API
-app.get('/orderDetails/:_id', verifyTokenUser, async (req, res) => {
+app.get('/orderDetails/:_id', async (req, res) => {
     let result = await Order.findOne(req.params);
     if (result) {
-        res.status(200).json({ result: 'success', Order_Detail: result });
+        let order_data = await Order.aggregate(
+            [
+                {
+                    $match: { productID: result.productID }
+                },
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "productName",    
+                        foreignField: "productName",  
+                        as: "product"
+                    },
+                },
+                {$unwind: "$product"},
+                {
+                    $project: {
+                        _id: 1,
+                        userID: 1,
+                        productID: 1,
+                        quantity: 1,
+                        Price: 1,
+                        deliveryAddress: 1,
+                        status: 1,
+                        productID: "$product._id",
+                        productName: "$product.productName",
+                    }
+                }
+            ]
+        )
+        res.status(200).json({ result: 'success', Order_Detail: order_data });
     } else {
         res.status(400).json({ result: 'Something Went Wrong, please try again..' })
     }
 })
 
 //Create Wishlist Api
-app.post('/addTOWishlist', verifyTokenUser, async (req, res)=>{
+app.post('/addTOWishlist', verifyTokenUser, async (req, res) => {
     let data = new WishList(req.body);
     let result = await data.save();
     if (result) {
@@ -505,7 +545,7 @@ app.get('/getWishlist/:userID', verifyTokenUser, async (req, res) => {
 })
 
 //Remove Wishlist Api
-app.delete('/removeFromWishlist/:_id', verifyTokenUser, async (req, res)=>{
+app.delete('/removeFromWishlist/:_id', verifyTokenUser, async (req, res) => {
     let result = await WishList.deleteOne(req.params);
     if (result) {
         res.status(200).json({ result: 'Product Removed From Your Wishlist Successfully' })
@@ -590,4 +630,4 @@ function verifyTokenUser(req, res, next) {
     }
 }
 
-app.listen(9000); 
+app.listen(3000); 
